@@ -129,7 +129,7 @@ class OrderRepository:
             {
             "id": order.id,
             "user_id": order.user_id,
-            "status": order.status,
+            "status": order.status.value,
             "total_amount": order.total_amount,
             "created_at": order.created_at 
             })
@@ -175,7 +175,7 @@ class OrderRepository:
                     {
                         "id": history.id,
                         "order_id": order.id,
-                        "status": history.status.value,
+                        "status": history.status.value ,
                         "changed_at": history.changed_at,
                     }
                 )
@@ -201,9 +201,9 @@ class OrderRepository:
         order = object.__new__(Order)
         order.id = row[0]
         order.user_id = row[1]
-        order.created_at = row[2]
-        order.status = OrderStatus(row[3])
-        order.total_amount = Decimal(str(row[4]))
+        order.created_at = row[4]
+        order.status = OrderStatus(row[2])
+        order.total_amount = Decimal(str(row[3]))
         order.items = []
         order.status_history = []
 
@@ -218,7 +218,6 @@ class OrderRepository:
 
             item = object.__new__(OrderItem)
             item.id = item_row[0]
-            item.product_name = order_id
             item.product_name = item_row[1]
             item.price = Decimal(str(item_row[2]))
             item.quantity = item_row[3]

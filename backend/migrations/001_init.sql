@@ -16,11 +16,12 @@ CREATE TABLE IF NOT EXISTS order_statuses (
 -- TODO: Вставить значения статусов
 -- created, paid, cancelled, shipped, completed
 INSERT INTO order_statuses (status, description) VALUES
-('created', 'created order'),
-('paid', 'paid order'),
-('cancelled', 'cancelled order'),
-('shipped', 'shipped order'),
-('completed', 'completed order');
+    ('CREATED', 'created order'),
+    ('PAID', 'paid order'),
+    ('CANCELLED', 'cancelled order'),
+    ('SHIPPED', 'shipped order'),
+    ('COMPLETED', 'completed order')
+ON CONFLICT (status) DO NOTHING;
 
 
 -- TODO: Создать таблицу users
@@ -38,7 +39,7 @@ CREATE TABLE IF NOT EXISTS users(
     CONSTRAINT valid_email CHECK (
         email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
     )
-)
+);
 
 
 -- TODO: Создать таблицу orders
@@ -53,7 +54,7 @@ CREATE TABLE IF NOT EXISTS orders(
     status VARCHAR(50) NOT NULL REFERENCES order_statuses(status),
     total_amount NUMERIC(13, 2) NOT NULL CHECK (total_amount >= 0),
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
-)
+);
 
 -- TODO: Создать таблицу order_items
 -- Столбцы: id (UUID PK), order_id (FK), product_name, price, quantity
@@ -68,7 +69,7 @@ CREATE TABLE IF NOT EXISTS order_items(
     price NUMERIC(13, 2) NOT NULL CHECK (price >= 0),
     quantity INTEGER NOT NULL CHECK (quantity > 0),
     product_name VARCHAR(255) NOT NULL CHECK (LENGTH(TRIM(product_name)) > 0)
-)
+);
 
 
 -- TODO: Создать таблицу order_status_history
@@ -81,7 +82,7 @@ CREATE TABLE IF NOT EXISTS order_status_history(
     order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
     status VARCHAR(50) NOT NULL REFERENCES order_statuses(status),
     changed_at TIMESTAMP NOT NULL DEFAULT NOW()
-)
+);
 
 
 -- ============================================
@@ -93,10 +94,10 @@ CREATE TABLE IF NOT EXISTS order_status_history(
 CREATE OR REPLACE FUNCTION check_order_not_already_paid() 
 RETURNS TRIGGER AS $$
 BEGIN
-IF (NEW.status = 'paid') THEN
+IF (NEW.status = 'PAID') THEN
     IF EXISTS (
         SELECT 1 FROM order_status_history
-        WHERE order_id = NEW.id AND status = 'paid'
+        WHERE order_id = NEW.id AND status = 'PAID'
     ) THEN
         RAISE EXCEPTION 'order % has already been paid', NEW.id;
     END IF;
@@ -105,19 +106,15 @@ RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_check_order_not_already_paid
-    BEFORE UPDATE ON orders
-    FOR EACH ROW
-    WHEN (NEW.status = 'paid')
-    EXECUTE FUNCTION check_order_not_already_paid();
 
 -- TODO: Создать триггер trigger_check_order_not_already_paid
 -- BEFORE UPDATE ON orders FOR EACH ROW
-trigger_check_order_not_already_paid
+CREATE TRIGGER trigger_check_order_not_already_paid
     BEFORE UPDATE ON orders
     FOR EACH ROW
-    WHEN (NEW.status = 'paid')
+    WHEN (NEW.status = 'PAID')
     EXECUTE FUNCTION check_order_not_already_paid();
+
 
 -- ============================================
 -- БОНУС (опционально)

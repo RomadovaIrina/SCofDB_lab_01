@@ -17,27 +17,19 @@ class OrderService:
 
     # TODO: Реализовать create_order(user_id) -> Order
     async def create_order(self, user_id: uuid.UUID) -> Order:
-        unser = await self.user_repo.get_user(user_id)
+        unser = await self.user_repo.find_by_id(user_id)
         if unser is None:
             raise UserNotFoundError(f"user {user_id} not found")
         
-        order = Order(
-            id=uuid.uuid4(),
-            user_id=user_id,
-            items=[],
-            total_price=Decimal(0),
-            status=OrderStatus.CREATED,
-            created_at=None,
-            updated_at=None,
-        )
+        order = Order(user_id=user_id)
 
-        await self.order_repo.save_order(order)
+        await self.order_repo.save(order)
         return order
 
 
     # TODO: Реализовать get_order(order_id) -> Order
     async def get_order(self, order_id: uuid.UUID) -> Order:
-        order = await self.order_repo.get_order(order_id)
+        order = await self.order_repo.find_by_id(order_id)
         if order is None:
             raise OrderNotFoundError(f"order {order_id} not found")
         return order
@@ -54,7 +46,7 @@ class OrderService:
 
         item = order.add_item(product_name, price, quantity)
         
-        await self.order_repo.save_order(order)
+        await self.order_repo.save(order)
         return item
 
     # TODO: Реализовать pay_order(order_id) -> Order
@@ -64,7 +56,7 @@ class OrderService:
 
         order.pay()
 
-        await self.order_repo.save_order(order)
+        await self.order_repo.save(order)
         return order
 
     # TODO: Реализовать cancel_order(order_id) -> Order
@@ -73,7 +65,7 @@ class OrderService:
 
         order.cancel()
 
-        await self.order_repo.save_order(order)
+        await self.order_repo.save(order)
         return order
 
     # TODO: Реализовать ship_order(order_id) -> Order
@@ -82,7 +74,7 @@ class OrderService:
 
         order.ship()
 
-        await self.order_repo.save_order(order)
+        await self.order_repo.save(order)
         return order
 
     # TODO: Реализовать complete_order(order_id) -> Order
@@ -91,16 +83,16 @@ class OrderService:
 
         order.complete()
 
-        await self.order_repo.save_order(order)
+        await self.order_repo.save(order)
         return order
 
     # TODO: Реализовать list_orders(user_id: Optional) -> List[Order]
     async def list_orders(self, user_id: Optional[uuid.UUID] = None) -> List[Order]:
         if user_id is not None:
-            unser = await self.user_repo.get_user(user_id)
+            unser = await self.user_repo.find_by_id(user_id)
             if unser is None:
                 raise UserNotFoundError(f"user {user_id} not found")
-            return await self.order_repo.list_orders(user_id)
+            return await self.order_repo.find_by_user(user_id)
         return await self.order_repo.find_all()
     
 
