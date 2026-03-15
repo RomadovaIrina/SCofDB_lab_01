@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS users(
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 
     CONSTRAINT valid_email CHECK (
         email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS order_items(
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
     price NUMERIC(13, 2) NOT NULL CHECK (price >= 0),
-    quantity INTEGER NOT NULL CHECK (quantity > 0)
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
     product_name VARCHAR(255) NOT NULL CHECK (LENGTH(TRIM(product_name)) > 0),
 )
 
@@ -90,7 +90,8 @@ CREATE TABLE IF NOT EXISTS order_status_history(
 -- TODO: Создать функцию триггера check_order_not_already_paid()
 -- При изменении статуса на 'paid' проверить что его нет в истории
 -- Если есть - RAISE EXCEPTION
-check_order_not_already_paid() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION check_order_not_already_paid() 
+RETURNS TRIGGER AS $$
 BEGIN
 IF (NEW.status = 'paid') THEN
     IF EXISTS (
