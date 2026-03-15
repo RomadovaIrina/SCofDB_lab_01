@@ -16,11 +16,11 @@ CREATE TABLE IF NOT EXISTS order_statuses (
 -- TODO: Вставить значения статусов
 -- created, paid, cancelled, shipped, completed
 INSERT INTO order_statuses (status, description) VALUES
-    ('CREATED', 'created order'),
-    ('PAID', 'paid order'),
-    ('CANCELLED', 'cancelled order'),
-    ('SHIPPED', 'shipped order'),
-    ('COMPLETED', 'completed order')
+    ('created', 'created order'),
+    ('paid', 'paid order'),
+    ('cancelled', 'cancelled order'),
+    ('shipped', 'shipped order'),
+    ('completed', 'completed order')
 ON CONFLICT (status) DO NOTHING;
 
 
@@ -94,10 +94,10 @@ CREATE TABLE IF NOT EXISTS order_status_history(
 CREATE OR REPLACE FUNCTION check_order_not_already_paid() 
 RETURNS TRIGGER AS $$
 BEGIN
-IF (NEW.status = 'PAID') THEN
+IF (NEW.status = 'paid') THEN
     IF EXISTS (
         SELECT 1 FROM order_status_history
-        WHERE order_id = NEW.id AND status = 'PAID'
+        WHERE order_id = NEW.id AND status = 'paid'
     ) THEN
         RAISE EXCEPTION 'order % has already been paid', NEW.id;
     END IF;
@@ -112,7 +112,7 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trigger_check_order_not_already_paid
     BEFORE UPDATE ON orders
     FOR EACH ROW
-    WHEN (NEW.status = 'PAID')
+    WHEN (NEW.status = 'paid')
     EXECUTE FUNCTION check_order_not_already_paid();
 
 
