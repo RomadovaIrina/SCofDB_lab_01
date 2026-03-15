@@ -18,7 +18,7 @@ class UserService:
     # 2. Создать User
     # 3. Сохранить через repo.save()
     async def register(self, email: str, name: str = "") -> User:
-        exists = await self.repo.get_by_email(email)
+        exists = await self.repo.find_by_email(email)
         if exists is not None:
             raise EmailAlreadyExistsError(f"Email {email}already used")
         unser  = User(
@@ -30,7 +30,7 @@ class UserService:
 
     # TODO: Реализовать get_by_id(user_id) -> User
     async def get_by_id(self, user_id: uuid.UUID) -> User:
-        user = await self.repo.get_by_id(user_id)
+        user = await self.repo.find_by_id(user_id)
         if user is None:
             raise UserNotFoundError(f"user {user_id} not found")
         return user
