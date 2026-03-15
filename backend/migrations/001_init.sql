@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS orders(
     user_id UUID NOT NULL REFERENCES users(id),
     status VARCHAR(50) NOT NULL REFERENCES order_statuses(status),
     total_amount NUMERIC(13, 2) NOT NULL CHECK (total_amount >= 0),
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 )
 
 -- TODO: Создать таблицу order_items
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS order_items(
     order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
     price NUMERIC(13, 2) NOT NULL CHECK (price >= 0),
     quantity INTEGER NOT NULL CHECK (quantity > 0),
-    product_name VARCHAR(255) NOT NULL CHECK (LENGTH(TRIM(product_name)) > 0),
+    product_name VARCHAR(255) NOT NULL CHECK (LENGTH(TRIM(product_name)) > 0)
 )
 
 
@@ -104,6 +104,12 @@ END IF;
 RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_check_order_not_already_paid
+    BEFORE UPDATE ON orders
+    FOR EACH ROW
+    WHEN (NEW.status = 'paid')
+    EXECUTE FUNCTION check_order_not_already_paid();
 
 -- TODO: Создать триггер trigger_check_order_not_already_paid
 -- BEFORE UPDATE ON orders FOR EACH ROW
